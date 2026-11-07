@@ -1,0 +1,17 @@
+{
+  "name": "yunqisihai-video-translation",
+  "version": "1.0.0",
+  "private": true,
+  "description": "云起四海：HeyGen 真实视频翻译工作台（初期管理员运营版）",
+  "type": "module",
+  "engines": {"node": ">=20"},
+  "scripts": {"start": "node server.js", "check": "node --check server.js && node --check public/app.js"},
+  "dependencies": {
+    "@aws-sdk/client-s3": "^3.800.0",
+    "@aws-sdk/s3-request-presigner": "^3.800.0",
+    "cookie-parser": "^1.4.7",
+    "express": "^4.21.2",
+    "express-rate-limit": "^7.5.0",
+    "helmet": "^8.0.0"
+  }
+}
