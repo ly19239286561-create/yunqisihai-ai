@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="zh-CN"><head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#e7f6fa">
+<meta name="description" content="会员AI视频翻译与多语言配音工作台">
+<title>制作视频 · 云起四海</title>
+<link rel="stylesheet" href="/member-studio.css"><script src="/member-studio.js" defer></script>
+</head><body>
+<header class="header"><div class="header-inner"><a href="/" class="brand"><img src="/brand-logo.png" alt="云起四海"><span class="brand-name">云起四海</span></a><div class="top-actions"><a href="/members.html#creditArea" class="balance-link">积分 <strong id="memberBalance">—</strong></a><a href="/members.html" class="member-link">会员中心</a></div></div></header>
+<main>
+<section class="studio-hero"><div><p class="eyebrow">AI VIDEO CREATOR</p><h1>把旅途的精彩，<br><em>翻译给世界听</em></h1><p class="muted">视频翻译 · 自然配音 · 口型同步<br>上传中文旅游视频，轻松制作多语言作品。</p></div><div class="travel-illustration" aria-hidden="true"><span>✦</span></div></section>
+<div class="studio-grid">
+<section class="card create-card" id="create"><div class="section-title"><span class="step">01</span><div><h2>上传旅游视频</h2><p>选择本地视频或粘贴公开HTTPS视频直链</p></div></div>
+ <div class="tabs"><button class="active" type="button" data-tab="file">上传视频</button><button type="button" data-tab="url">视频链接</button></div>
+ <div id="fileArea" class="file-area"><label class="upload-box" for="videoFile"><span class="upload-symbol">⇧</span><strong id="fileTitle">选择手机或电脑中的视频</strong><small>MP4 / WEBM，单个视频不超过32MB</small><input id="videoFile" type="file" accept="video/mp4,video/webm" hidden></label><video id="preview" class="preview hidden" controls playsinline></video></div>
+ <div id="urlArea" class="hidden"><label class="field">视频直链<input id="videoUrl" type="url" inputmode="url" placeholder="https://example.com/video.mp4"></label><p class="explain">链接必须是无需登录、可以公开直接下载的视频文件。</p></div>
+ <div class="section-title option-heading"><span class="step">02</span><div><h2>设置目标语言</h2><p>语种与地区口音以实际套餐支持为准</p></div></div>
+ <label class="field">翻译语言<select id="language"><option value="">正在加载语言列表…</option></select></label>
+ <p id="languageHint" class="explain" role="status">正在获取可选语言…</p>
+ <label class="field">翻译模式<select id="mode"><option value="speed">标准翻译 · 配音与口型同步</option><option value="precision">精细模式 · 更精准口型同步</option><option value="audio">仅翻译配音 · 不修改口型</option></select></label>
+ <label class="check"><input id="captions" type="checkbox" checked> 同时生成翻译字幕文件</label>
+ <label class="check"><input id="consent" type="checkbox"> 我已获得视频、人物肖像和声音的使用授权</label>
+ <div class="price-line"><div><span>本次预计扣除</span><strong><span id="price">—</span> 积分</strong></div><a href="/members.html#creditArea">申请积分 →</a></div>
+ <button id="submitBtn" class="submit" type="button" disabled>开始翻译视频 <span>→</span></button>
+ <p class="notice" id="notice" role="status" aria-live="polite"></p>
+</section>
+<aside class="side"><div class="card how-card"><h3>制作流程</h3><ol><li><span>01</span> 上传视频或填写直链</li><li><span>02</span> 选择语言与翻译方式</li><li><span>03</span> 提交任务并自动扣除积分</li><li><span>04</span> 完成后下载视频及字幕</li></ol></div><div class="card wallet-card"><span class="eyebrow">MY CREDITS</span><h3>我的可用积分</h3><strong id="asideBalance">—</strong><a href="/members.html#creditArea">进入积分中心 →</a><small>内测按次扣点，视频时长计价尚未启用。后台可调整积分标准。</small></div></aside>
+</div>
+<section class="card works-card" id="myWorks"><div class="works-heading"><div><p class="eyebrow">MY VIDEO PROJECTS</p><h2>我的翻译作品</h2></div><button id="refreshJobs" type="button">刷新进度 ↻</button></div><div id="worksList"><p class="explain">登录后加载你的作品…</p></div></section>
+</main>
+<footer><a href="/">云起四海</a> · 一方云起，四海同行</footer>
+</body></html>
