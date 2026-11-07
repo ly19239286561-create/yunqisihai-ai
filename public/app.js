@@ -5,7 +5,7 @@ let signedStorage=false;
 let uploadMode='none';
 let pollTimer=null;
 const STORAGE='yunqisihai-translation-jobs-v1';
-const langNames={'English (United States)':'英语','Korean':'韩语','Japanese':'日语','French (France)':'法语','German (Germany)':'德语','Spanish (Spain)':'西班牙语','Thai':'泰语','Vietnamese':'越南语','Chinese (Mandarin, Simplified)':'中文'};
+const langNames={'English (United States)':'英文','Korean':'韩语','Japanese':'日语','French (France)':'法语','German (Germany)':'德语','Spanish (Spain)':'西班牙语','Thai':'泰语','Vietnamese':'越南语','Chinese (Mandarin, Simplified)':'中文'};
 function setMessage(message,err=false){const node=$('#notice');node.className=err?'error':'';node.textContent=message;}
 async function api(path,options={}){
   const response=await fetch('/api'+path,{credentials:'same-origin',...options,
@@ -76,16 +76,16 @@ $('#submitBtn').addEventListener('click',async()=>{
       if(!currentFile)throw new Error('请先选择视频文件。');
       if(!signedStorage)throw new Error('服务器尚未启用本地视频上传。');
       name=currentFile.name;
-      if(uploadMode==='heygen'){
+      if(uploadMode==='direct'){
         if(currentFile.size>32*1024*1024)throw new Error('免费直传限32MB，建议先用剪映压缩视频。');
         if(!['video/mp4','video/webm'].includes(currentFile.type))throw new Error('请将视频转为 MP4 或 WEBM 再上传。');
-        setMessage('正在安全上传到 HeyGen，请保持页面打开…');
-        const response=await fetch('/api/uploads/heygen',{
+        setMessage('正在安全上传视频，请保持页面打开…');
+        const response=await fetch('/api/uploads/video',{
           method:'POST',credentials:'same-origin',headers:{'Content-Type':currentFile.type},body:currentFile
         });
         let payload;try{payload=await response.json();}catch{payload={error:'上传服务器响应异常'};}
         if(!response.ok)throw new Error(payload.error||('上传失败：'+response.status));
-        if(!payload.assetId)throw new Error('上传成功但HeyGen未返回素材ID');
+        if(!payload.assetId)throw new Error('上传成功，但没有获取到视频编号');
         input.assetId=payload.assetId;
       }else if(uploadMode==='r2'){
         if(currentFile.size>1024*1024*1024)throw new Error('文件不能超过1GB。');
@@ -101,7 +101,7 @@ $('#submitBtn').addEventListener('click',async()=>{
       const url=$('#videoUrl').value.trim();if(!url.startsWith('https://'))throw new Error('请填写 HTTPS 视频文件链接。');
       input.videoUrl=url;name=url.split('/').pop().split('?')[0].slice(0,60)||'在线视频';
     }
-    setMessage('正在向 HeyGen 提交视频翻译任务…');
+    setMessage('正在提交视频翻译任务…');
     const job=await api('/translate',{method:'POST',body:JSON.stringify(input)});
     const jobs=readJobs();jobs.unshift({id:job.id,status:'submitted',name,language:input.language,date:new Date().toISOString()});saveJobs(jobs);renderJobs();
     setMessage(`任务已真实提交：${job.id}。系统将自动检查状态，完成后显示下载链接。`);
