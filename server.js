@@ -9,6 +9,7 @@ import path from 'node:path';
 import { S3Client, PutObjectCommand, GetObjectCommand, HeadObjectCommand } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { registerMemberRoutes } from './member-api.js';
+import { registerMemberVideoRoutes } from './member-video-api.js';
 
 const app = express();
 app.disable('x-powered-by');
@@ -62,7 +63,7 @@ function validSession(req) {
 function authorized(req,res,next){if(!validSession(req))return res.status(401).json({error:'请先登录工作台'});next();}
 function safeError(err){
   const message = String(err?.message || err || '未知错误');
-  return message.replaceAll(KEY || '\0','[API KEY]').slice(0,360);
+  return message.replaceAll(KEY || '\0','[API KEY]').replace(/heygen/gi,'翻译服务').slice(0,360);
 }
 function validVideoUrl(raw){
   if(typeof raw !== 'string' || raw.length>2048) return null;
@@ -92,7 +93,7 @@ async function heygen(path,method='GET',body){
 }
 
 app.get('/api/health',(_req,res)=>res.json({status:'ok'}));
-app.get('/api/session',(req,res)=>res.json({loggedIn:validSession(req),uploadsEnabled:true,uploadMode:r2Ready?'r2':'heygen',maxDirectBytes:MAX_DIRECT_BYTES}));
+app.get('/api/session',(req,res)=>res.json({loggedIn:validSession(req),uploadsEnabled:true,uploadMode:r2Ready?'r2':'direct',maxDirectBytes:MAX_DIRECT_BYTES}));
 app.post('/api/login',limitLogin,(req,res)=>{
   const {email,password}=req.body??{};
   const expected = crypto.scryptSync(ADMIN_PASSWORD,'yunqisihai-login',64);
@@ -108,11 +109,11 @@ app.post('/api/logout',authorized,(_req,res)=>{res.clearCookie('yqsession',{http
 // 小视频无需第三方对象存储，由受保护的后端转发到HeyGen（最大32MB）。
 // Express raw仅接受明确的MP4/WEBM Content-Type，避免把API密钥暴露在浏览器。
 const rawVideo = express.raw({type:['video/mp4','video/webm'],limit:'32mb'});
-app.post('/api/uploads/heygen',authorized,limitSubmit,rawVideo,async(req,res)=>{
+app.post(['/api/uploads/video','/api/uploads/heygen'],authorized,limitSubmit,rawVideo,async(req,res)=>{
   try{
     const type=(req.get('content-type')||'').split(';')[0].trim().toLowerCase();
     if(!['video/mp4','video/webm'].includes(type)||!Buffer.isBuffer(req.body)||!req.body.length||req.body.length>MAX_DIRECT_BYTES){
-      return res.status(400).json({error:'HeyGen直接上传仅支持32MB以内的MP4/WEBM视频'});
+      return res.status(400).json({error:'视频上传仅支持32MB以内的MP4/WEBM文件'});
     }
     const form=new FormData();
     form.append('file',new Blob([req.body],{type}),type==='video/mp4'?'tour-video.mp4':'tour-video.webm');
@@ -133,7 +134,7 @@ app.post('/api/uploads/heygen',authorized,limitSubmit,rawVideo,async(req,res)=>{
     const assetId=result.data?.asset_id;
     if(typeof assetId!=='string'||!assetId)throw new Error('HeyGen未返回素材ID');
     res.json({assetId});
-  }catch(e){res.status(502).json({error:'直传HeyGen失败：'+safeError(e)});}
+  }catch(e){res.status(502).json({error:'视频上传失败：'+safeError(e)});}
 });
 
 // 浏览器使用 R2 签名 URL 直传，不经过本服务服务器转存视频。
@@ -149,14 +150,47 @@ app.post('/api/uploads/sign',authorized,limitSubmit,async(req,res)=>{
   }catch(e){res.status(502).json({error:'获取上传链接失败：'+safeError(e)});}
 });
 
-const LANGUAGES = new Set(['English (United States)','Korean','Japanese','French (France)','German (Germany)','Spanish (Spain)','Thai','Vietnamese','Chinese (Mandarin, Simplified)']);
+// Keep a complete local fallback for provider outages; refresh canonical names from the API.
+const FALLBACK_LANGUAGES = Object.freeze(JSON.parse(readFileSync(path.resolve('languages-fallback.json'),'utf8')));
+let languageCache = null;
+let languageFetch = null;
+async function getLanguages(){
+  const nowTime=Date.now();
+  if(languageCache && nowTime-languageCache.loadedAt<6*60*60*1000)return languageCache;
+  if(!languageFetch){
+    languageFetch=(async()=>{
+      try{
+        const result=await heygen('/v3/video-translations/languages');
+        const data=result.data||result;
+        if(!Array.isArray(data.languages)||data.languages.length<10)throw new Error('invalid language list');
+        const names=[...new Set(data.languages.filter(s=>typeof s==='string'&&s.length>0&&s.length<120))];
+        if(names.length<10)throw new Error('empty language list');
+        const plan=Array.isArray(data.available_on_current_plan)?data.available_on_current_plan.filter(s=>names.includes(s)):null;
+        languageCache={languages:names,availableOnPlan:plan,fromLiveApi:true,loadedAt:Date.now()};
+      }catch(error){
+        console.warn('Translation languages API unavailable:',error?.name||'error');
+        languageCache=languageCache||{languages:FALLBACK_LANGUAGES,availableOnPlan:null,fromLiveApi:false,loadedAt:Date.now()};
+      }
+      return languageCache;
+    })().finally(()=>{languageFetch=null;});
+  }
+  return await languageFetch;
+}
+app.get('/api/languages',authorized,async(_req,res)=>{
+  const data=await getLanguages();
+  res.set('Cache-Control','no-store');
+  res.json({languages:data.languages,availableOnPlan:data.availableOnPlan,fromLiveApi:data.fromLiveApi});
+});
+
 app.post('/api/translate',authorized,limitSubmit,async(req,res)=>{
   try{
     const {assetId,fileKey,videoUrl,language,mode,enableCaption}=req.body??{};
-    if(!LANGUAGES.has(language)||!['speed','precision','audio'].includes(mode))return res.status(400).json({error:'请选择有效的语言和翻译模式'});
+    const supported=await getLanguages();
+    if(typeof language!=='string'||!supported.languages.includes(language)||!['speed','precision','audio'].includes(mode))return res.status(400).json({error:'请选择有效的语言和翻译模式'});
+    if(supported.availableOnPlan&&!supported.availableOnPlan.includes(language))return res.status(400).json({error:'当前服务套餐暂不支持所选语种。'});
     let video;
     if(assetId){
-      if(typeof assetId!=='string'||!/^[-_a-zA-Z0-9]{6,200}$/.test(assetId))return res.status(400).json({error:'无效HeyGen素材ID'});
+      if(typeof assetId!=='string'||!/^[-_a-zA-Z0-9]{6,200}$/.test(assetId))return res.status(400).json({error:'无效视频素材编号'});
       video={type:'asset_id',asset_id:assetId};
     }else if(fileKey){
       if(!r2Ready)return res.status(400).json({error:'未配置上传存储'});
@@ -175,7 +209,7 @@ app.post('/api/translate',authorized,limitSubmit,async(req,res)=>{
       enable_speech_enhancement:true,enable_dynamic_duration:true};
     const result=await heygen('/v3/video-translations','POST',request);
     const ids=result.data?.video_translation_ids||result.video_translation_ids;
-    if(!Array.isArray(ids)||!ids[0])throw new Error('HeyGen 未返回任务ID：'+JSON.stringify(result).slice(0,180));
+    if(!Array.isArray(ids)||!ids[0])throw new Error('翻译服务未返回任务编号：'+JSON.stringify(result).slice(0,180));
     res.json({id:ids[0],status:'submitted'});
   }catch(e){res.status(502).json({error:'提交翻译失败：'+safeError(e)});}
 });
@@ -190,25 +224,19 @@ app.get('/api/translate/:id',authorized,async(req,res)=>{
 });
 
 // Member accounts live in a separate PostgreSQL database and do not grant admin translation privileges.
-registerMemberRoutes(app);
+const memberServices = registerMemberRoutes(app, { adminSession: validSession });
+registerMemberVideoRoutes(app, { ...memberServices, getLanguages, heygen, validVideoUrl, safeError });
 
 // Serve member pages from the project root; keep original public/ files unchanged.
-for (const file of ['members.html','members.css','members.js']) {
+for (const file of ['members.html','members.css','members.js','credit-admin.html','credit-admin.css','credit-admin.js','admin.html','admin-dashboard.html','admin-portal.js']) {
   app.get('/'+file, (_req,res)=>res.sendFile(path.resolve(file)));
 }
 app.get('/members', (_req,res) => res.redirect(302,'/members.html'));
 
-// Add one clearly visible member entry to the existing home page without replacing its design.
-app.get('/', (_req,res,next) => {
-  try {
-    const original = readFileSync(path.resolve('public/index.html'),'utf8');
-    const link = '<section class="wrap"><a class="cta" href="/members.html">会员注册 / 登录 →</a></section>';
-    const html = original.includes('<main>') ? original.replace('<main>', '<main>' + link) : original;
-    res.type('html').send(html);
-  } catch(e) { next(e); }
-});
+// Public landing page is intentionally limited to member/admin entry points.
+app.get('/', (_req,res)=>res.sendFile(path.resolve('public/index.html')));
 
 app.use(express.static('public',{index:'index.html',dotfiles:'ignore',maxAge:'10m'}));
 app.use((_req,res)=>res.status(404).json({error:'接口不存在'}));
 const port=Number(process.env.PORT)||3000;
-app.listen(port,()=>console.log(`云起四海工作台运行于 ${port} 端口；上传：${r2Ready?'R2':'HeyGen直接上传（32MB）'}；会员数据库：${process.env.DATABASE_URL?'已配置':'待配置'}`));
+app.listen(port,()=>console.log(`云起四海工作台运行于 ${port} 端口；上传：${r2Ready?'R2':'直接上传（32MB）'}；会员数据库：${process.env.DATABASE_URL?'已配置':'待配置'}`));

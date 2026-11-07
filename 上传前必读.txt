@@ -1,0 +1,26 @@
+云起四海 v1.5 会员视频入口补全包
+
+仓库：https://github.com/ly19239286561-create/yunqisihai-ai
+
+我已检查GitHub仓库：根目录缺少 member-video-api.js；public文件夹缺少 member-studio.html、member-studio.css、member-studio.js 及品牌图片资源，并且多份旧文件尚未替换。只上传单个网页文件不能让会员视频翻译功能正常工作。
+
+上传分两组，不要上传ZIP本身：
+
+【一】进入仓库首页（根目录）→ Add file → Upload files：
+  member-video-api.js
+  member-api.js
+  members.html
+  members.css
+  members.js
+  server.js
+
+【二】点击仓库的 public 文件夹 → Add file → Upload files：
+  public目录里的 index.html、entry.css、member-studio.html、member-studio.css、member-studio.js、brand-logo.png、zhangjiajie-scene.svg、youtube.svg、tiktok.svg、instagram.svg、facebook.svg
+
+特别提醒：public里面的文件要上传到 GitHub 仓库 public 文件夹中；不要上传到根目录。server.js请最后提交，以降低部署期间出错概率。
+
+最后在Render检查是否部署成功，再访问：
+https://yunqisihai-ai.onrender.com/members.html
+https://yunqisihai-ai.onrender.com/member-studio.html
+
+提醒：上线并不等于真实的视频翻译已通过测试，第一次用短视频验证，任务会消耗上游API额度和测试积分。

@@ -1,0 +1,59 @@
+云起四海 v1.5｜会员视频工作台 + 品牌首页
+========================================
+
+目标GitHub仓库：ly19239286561-create/yunqisihai-ai
+
+本压缩包是【增量更新】。它保留之前的管理员后台、会员数据库和190项语种功能。
+原有环境变量不需删除；无需上传视频、账号密码或API密钥。
+
+1. 【仓库根目录】新增或覆盖以下文件：
+    member-video-api.js  新增：会员视频翻译API、积分扣费/失败退款
+    member-api.js        覆盖：衔接会员会话与翻译API
+    members.html         覆盖：会员中心新增醒目的「开始制作视频」入口
+    members.css          覆盖：会员中心手机排版
+    members.js           覆盖：登录后可进入视频工作台
+    server.js            覆盖：注册会员视频API
+
+2. 【public 文件夹】新增或覆盖：
+    index.html           覆盖：首页极简布局、会员入口、管理员入口
+    entry.css            覆盖：首页样式，保留管理员页面样式
+    member-studio.html   新增：会员视频创作页面
+    member-studio.css    新增：会员视频创作样式
+    member-studio.js     新增：文件上传、语言选择、提交翻译、作品查询
+    brand-logo.png       新增：用户提供的原Logo图（原样保留）
+    zhangjiajie-scene.svg 新增：张家界山峰、云雾背景
+    youtube.svg          新增：平台标志
+    tiktok.svg           新增：平台标志
+    instagram.svg        新增：平台标志
+    facebook.svg         新增：平台标志
+
+注意：public文件必须放进 public 文件夹，不能放在仓库根目录。
+若分多次上传，建议最后才上传根目录的 server.js，以减少中途部署报错。
+
+3. GitHub 提交后 Render 应自动部署。检查服务日志是否显示启动成功。
+
+网站地址：
+首页              https://yunqisihai-ai.onrender.com/
+会员登录/中心      https://yunqisihai-ai.onrender.com/members.html
+会员视频工作台    https://yunqisihai-ai.onrender.com/member-studio.html
+管理员登录        https://yunqisihai-ai.onrender.com/admin.html
+管理员后台        https://yunqisihai-ai.onrender.com/admin-dashboard.html
+积分审核          https://yunqisihai-ai.onrender.com/credit-admin.html
+
+4. 本次新接的真实功能：
+- 会员登录后可点击「开始制作视频」，无需管理员账号。
+- 会员选择本地MP4/WEBM视频（单次32MB以内）或视频HTTPS直链。
+- 根据上游账户动态获取语种，最多可显示190项；实际能用的语种按API套餐限制。
+- 向已有官方视频翻译 API 提交真实任务，完成后提供下载链接。
+- 会员按提交前显示的积分标准扣点；任务提交失败、远端确认失败时自动退款。
+- 会员的任务与积分记录独立保存到已有 Neon PostgreSQL。
+- 管理员积分审核功能保留，不需要替换之前已修复的 credit-api.js。
+
+5. 重要的费用/测试说明：
+- 测试计费默认：标准模式10积分/条，精细模式20积分/条，仅配音5积分/条。
+- 这是内部测试积分规则，不代表已按真实视频时长核算成本；正式售卖前请确认计价方案。
+- 可在Render增加 MEMBER_TRANSLATION_POINTS_PER_JOB 环境变量改变标准模式积分数，其余模式按倍数/半数计算；不添加则默认10。
+- 真正翻译仍消耗所连接视频服务账户的API额度，非免费模型。
+- 仍需管理员人工审核积分申请；未接入在线付款，也未接入短信验证。
+- 会员真实API任务未经生产环境提交测试，上线后建议先用短视频和少量积分验证。
+- 若向客户商业化、去服务商标识，请确认API合同允许转售/白标服务。
