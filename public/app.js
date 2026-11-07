@@ -5,7 +5,38 @@ let signedStorage=false;
 let uploadMode='none';
 let pollTimer=null;
 const STORAGE='yunqisihai-translation-jobs-v1';
-const langNames={'English (United States)':'英文','Korean':'韩语','Japanese':'日语','French (France)':'法语','German (Germany)':'德语','Spanish (Spain)':'西班牙语','Thai':'泰语','Vietnamese':'越南语','Chinese (Mandarin, Simplified)':'中文'};
+const langNames={'English':'英语','English (United States)':'英语（美国）','English (UK)':'英语（英国）','Korean':'韩语','Japanese':'日语','French':'法语','German':'德语','Spanish':'西班牙语','Thai':'泰语','Vietnamese':'越南语','Chinese (Mandarin, Simplified)':'中文（普通话）'};
+const chineseNames={'Afrikaans':'南非荷兰语','Albanian':'阿尔巴尼亚语','Amharic':'阿姆哈拉语','Arabic':'阿拉伯语','Armenian':'亚美尼亚语','Azerbaijani':'阿塞拜疆语','Bangla':'孟加拉语','Basque':'巴斯克语','Belarusian':'白俄罗斯语','Bengali':'孟加拉语','Bosnian':'波斯尼亚语','Bulgarian':'保加利亚语','Burmese':'缅甸语','Catalan':'加泰罗尼亚语','Chinese':'中文','Croatian':'克罗地亚语','Czech':'捷克语','Danish':'丹麦语','Dutch':'荷兰语','English':'英语','Estonian':'爱沙尼亚语','Filipino':'菲律宾语','Finnish':'芬兰语','French':'法语','Galician':'加利西亚语','Georgian':'格鲁吉亚语','German':'德语','Greek':'希腊语','Gujarati':'古吉拉特语','Haitian Creole':'海地克里奥尔语','Hebrew':'希伯来语','Hindi':'印地语','Hungarian':'匈牙利语','Icelandic':'冰岛语','Indonesian':'印尼语','Irish':'爱尔兰语','Italian':'意大利语','Japanese':'日语','Javanese':'爪哇语','Kannada':'卡纳达语','Kazakh':'哈萨克语','Khmer':'高棉语','Konkani':'孔卡尼语','Korean':'韩语','Lao':'老挝语','Latin':'拉丁语','Latvian':'拉脱维亚语','Lithuanian':'立陶宛语','Luxembourgish':'卢森堡语','Macedonian':'马其顿语','Maithili':'迈蒂利语','Malagasy':'马达加斯加语','Malay':'马来语','Malayalam':'马拉雅拉姆语','Maltese':'马耳他语','Mandarin':'中文（普通话）','Marathi':'马拉地语','Mongolian':'蒙古语','Nepali':'尼泊尔语','Norwegian Bokmål':'挪威语（博克马尔）','Norwegian Nynorsk':'挪威语（尼诺斯克）','Odia':'奥里亚语','Pashto':'普什图语','Persian':'波斯语','Polish':'波兰语','Portuguese':'葡萄牙语','Punjabi':'旁遮普语','Romanian':'罗马尼亚语','Russian':'俄语','Serbian':'塞尔维亚语','Sindhi':'信德语','Sinhala':'僧伽罗语','Slovak':'斯洛伐克语','Slovenian':'斯洛文尼亚语','Somali':'索马里语','Spanish':'西班牙语','Sundanese':'巽他语','Swahili':'斯瓦希里语','Swedish':'瑞典语','Tamil':'泰米尔语','Telugu':'泰卢固语','Thai':'泰语','Turkish':'土耳其语','Ukrainian':'乌克兰语','Urdu':'乌尔都语','Uzbek':'乌兹别克语','Vietnamese':'越南语','Welsh':'威尔士语','Zulu':'祖鲁语'};
+function displayLanguage(name){if(langNames[name])return `${langNames[name]} · ${name}`;const match=/^([^()]+?)(?: \((.+)\))?$/.exec(name);if(!match)return name;const base=match[1].trim();return `${chineseNames[base]||base}${match[2]?'（'+match[2]+'）':''} · ${name}`;}
+async function loadLanguages(){
+ const select=$('#language'),status=$('#languageStatus');
+ try{
+  const data=await api('/languages');
+  if(!Array.isArray(data.languages)||!data.languages.length)throw new Error('语言列表为空');
+  const previous=select.value;
+  select.replaceChildren();
+  const langs=data.languages.slice().sort((a,b)=>a.localeCompare(b,'en'));
+  const preferred=['English','English (United States)','Korean','Japanese','Spanish','French','German','Thai','Vietnamese','Chinese (Mandarin, Simplified)'];
+  const rank=x=>{const i=preferred.indexOf(x);return i<0?999:i;};
+  langs.sort((a,b)=>rank(a)-rank(b)||a.localeCompare(b,'en'));
+  const available=Array.isArray(data.availableOnPlan)?new Set(data.availableOnPlan):null;
+  for(const name of langs){
+   const opt=document.createElement('option');opt.value=name;
+   const blocked=available&&!available.has(name);
+   opt.textContent=displayLanguage(name)+(blocked?' · 需升级套餐':'');
+   if(blocked)opt.disabled=true;
+   select.append(opt);
+  }
+  const chosen=previous&&langs.includes(previous)?previous:(langs.includes('English')?'English':langs[0]);
+  if(available&&!available.has(chosen))select.value=langs.find(x=>available.has(x))||'';
+  else select.value=chosen;
+  status.textContent=`已加载 ${langs.length} 个语言及地区选项`+(available?`，当前套餐可用 ${langs.filter(x=>available.has(x)).length} 项`:'')+(data.fromLiveApi?'':'（使用备用列表，提交时可能受限制）');
+ }catch(error){
+  status.textContent='加载语言失败：'+error.message;
+  select.replaceChildren();const opt=document.createElement('option');opt.value='';opt.textContent='语言暂不可用，请刷新页面';select.append(opt);
+ }
+}
+
 function setMessage(message,err=false){const node=$('#notice');node.className=err?'error':'';node.textContent=message;}
 async function api(path,options={}){
   const response=await fetch('/api'+path,{credentials:'same-origin',...options,
@@ -46,7 +77,7 @@ async function restoreSession(){
     $('#logoutBtn').classList.toggle('hidden',!data.loggedIn);
     $('#storageHint').classList.toggle('hidden',signedStorage);
     if(!signedStorage)$('#storageHint').textContent='当前不支持本地上传，请切换视频链接。';
-    if(data.loggedIn){renderJobs();await refreshJobs();if(!pollTimer)pollTimer=setInterval(refreshJobs,18000);}
+    if(data.loggedIn){await loadLanguages();renderJobs();await refreshJobs();if(!pollTimer)pollTimer=setInterval(refreshJobs,18000);}
     else{if(pollTimer)clearInterval(pollTimer);pollTimer=null;}
   }catch(e){setMessage(e.message,true);}
 }
@@ -70,6 +101,7 @@ $('#submitBtn').addEventListener('click',async()=>{
   if(!$('#consent').checked){setMessage('请先确认拥有视频和出镜者声音的使用授权。',true);return;}
   const btn=$('#submitBtn');btn.disabled=true;
   try{
+    if(!$('#language').value)throw new Error('请选择可用翻译语言。');
     let input={language:$('#language').value,mode:$('#mode').value,enableCaption:$('#captions').checked};
     let name='在线视频';
     if(selectedTab==='file'){
