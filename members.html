@@ -1,43 +1,70 @@
 <!doctype html>
 <html lang="zh-CN">
 <head>
- <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#e9f8fb">
- <meta name="description" content="云起四海AI视频翻译会员工作台"><title>会员工作台 · 云起四海</title>
- <link rel="stylesheet" href="/members.css"><script src="/members.js" defer></script>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#d8efff">
+<meta name="description" content="云起四海会员中心｜AI视频翻译、配音与口型同步">
+<title>会员中心 · 云起四海 AI VIDEO STUDIO</title>
+<link rel="stylesheet" href="/members.css?v=17"><script src="/members.js" defer></script>
 </head>
-<body>
- <header class="sitebar"><div class="header-inner"><a class="logo" href="/"><img src="/brand-logo.png" alt="云起四海"><span class="brand-name">云起四海</span></a><nav class="site-nav"><a href="/member-studio.html">视频制作</a><a href="/">首页</a></nav></div></header>
- <main class="container">
-  <section class="intro"><p class="eyebrow">AI VIDEO WORKSPACE</p><h1>会员工作台</h1><p>让一条旅游视频，走向世界。</p></section>
-  <section class="panel" id="authCard">
-   <div id="signedOutArea">
-    <nav class="tabs" aria-label="登录与注册"><button id="tabLogin" type="button" class="active" aria-current="page">会员登录</button><button id="tabSignup" type="button">注册会员</button></nav>
-    <form id="authForm">
-     <label id="nameField" class="hidden">姓名或昵称<input name="name" id="name" autocomplete="name" maxlength="80" placeholder="请输入姓名或昵称"></label>
-     <label>电子邮箱<input name="email" id="email" type="email" autocomplete="email" required maxlength="254" placeholder="name@example.com"></label>
-     <label>密码<div class="password-wrap"><input name="password" id="password" type="password" autocomplete="current-password" required minlength="12" maxlength="128" placeholder="不少于12位"><button type="button" id="togglePassword" class="eye-toggle" aria-label="显示密码" aria-pressed="false" title="显示或隐藏密码"><svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M2 12s3.6-6 10-6 10 6 10 6-3.6 6-10 6S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></svg></button></div></label>
-     <button type="submit" id="submit" class="primary">会员登录</button><p class="hint">注册只需邮箱和密码，无需短信验证码。</p>
-    </form>
+<body class="member-theme">
+<div class="member-page-shell">
+  <header class="sitebar">
+   <div class="header-inner">
+    <a class="logo" href="/" aria-label="云起四海首页"><img src="/brand-logo.png" alt="云起四海山海飞机标志"><span class="brand-name">云起四海<small>AI VIDEO STUDIO</small></span></a>
+    <a class="home-link" href="/">⌂ 返回首页</a>
    </div>
-   <div id="signedInArea" class="hidden">
-    <div class="welcome-heading"><div><p class="eyebrow">WELCOME BACK</p><h2>开启你的创作之旅</h2><p>视频翻译、配音、口型同步，全部在这里。</p></div><span class="welcome-stamp" aria-hidden="true">✦</span></div>
-    <a class="studio-cta" href="/member-studio.html"><span class="video-icon">▶</span><span><strong>开始制作视频</strong><small>上传视频 · 选择语言 · 获取成片</small></span><span class="cta-arrow">→</span></a>
-    <div class="quick-items"><a href="/member-studio.html#myWorks">▤ 我的作品</a><a href="#creditArea">◉ 我的积分</a><a href="#accountArea">♙ 账号资料</a></div>
-    <section class="account-secondary" id="creditArea" aria-label="我的积分和订单">
-     <div class="credit-heading"><h2>积分中心</h2><strong id="creditBalance">— <small>点</small></strong></div>
-     <p class="credit-help">视频翻译会按提交前显示的积分标准扣费；充值申请由管理员审核，目前未接入在线支付。</p>
-     <form id="creditForm" class="credit-form">
-      <label>申请积分数量<input id="creditPoints" type="number" min="1" max="100000" step="1" inputmode="numeric" value="100" required></label>
-      <label>申请备注（选填）<input id="creditRemark" type="text" maxlength="200" placeholder="例如：申请体验积分"></label>
-      <button id="creditSubmit" class="primary" type="submit">提交积分申请</button>
+  </header>
+  <main class="container">
+   <section class="member-hero" aria-label="张家界AI视频翻译">
+    <img class="hero-traveler" src="/traveler-european.webp" alt="在张家界旅行的欧洲女性游客">
+    <div class="hero-copy">
+     <p class="hero-eyebrow">ZHANGJIAJIE · AI VIDEO STUDIO</p>
+     <h1>一条中文视频<span>走向全世界</span></h1>
+     <p class="hero-subtitle">视频翻译 · AI配音 · 口型同步</p>
+     <div class="language-pill">🌐 <strong>190</strong> 种语言及地区口音选项</div>
+    </div>
+    <div class="platform-row" aria-label="海外内容平台">
+     <span><img src="/youtube.svg" alt="">YouTube</span>
+     <span><img src="/tiktok.svg" alt="">TikTok</span>
+     <span><img src="/instagram.svg" alt="">Instagram</span>
+     <span><img src="/facebook.svg" alt="">Facebook</span>
+    </div>
+   </section>
+   <section class="panel" id="authCard" aria-label="会员中心">
+    <div id="signedOutArea">
+     <div class="auth-heading"><span class="auth-heading-icon" aria-hidden="true">✦</span><div><p class="eyebrow">YOUR CREATIVE STUDIO</p><h2>欢迎来到云起四海</h2><p>登录后，立即制作你的多语言视频。</p></div></div>
+     <nav class="tabs" aria-label="登录与注册"><button id="tabLogin" type="button" class="active" aria-current="page">会员登录</button><button id="tabSignup" type="button">注册会员</button></nav>
+     <form id="authForm">
+      <label id="nameField" class="hidden">姓名或昵称<input name="name" id="name" autocomplete="name" maxlength="80" placeholder="请输入姓名或昵称"></label>
+      <label>电子邮箱<input name="email" id="email" type="email" autocomplete="email" required maxlength="254" placeholder="请输入电子邮箱"></label>
+      <label>密码<div class="password-wrap"><input name="password" id="password" type="password" autocomplete="current-password" required minlength="12" maxlength="128" placeholder="输入登录密码（至少12位）"><button type="button" id="togglePassword" class="eye-toggle" aria-label="显示密码" aria-pressed="false" title="显示或隐藏密码"><svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M2 12s3.6-6 10-6 10 6 10 6-3.6 6-10 6S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></svg></button></div></label>
+      <button type="submit" id="submit" class="primary">会员登录</button><p class="hint">注册仅需邮箱和密码，无需短信验证码。</p>
      </form>
-     <p id="creditStatus" class="status" role="status" aria-live="polite"></p>
-     <div class="credit-heading"><h3>积分申请记录</h3><button id="creditRefresh" type="button" class="small-button">刷新</button></div>
-     <div id="creditOrders" class="credit-records"></div><h3>积分流水</h3><div id="creditLedger" class="credit-records"></div>
-    </section>
-    <section class="account-secondary" id="accountArea"><h2>账号资料</h2><dl><dt>姓名</dt><dd id="profileName"></dd><dt>邮箱</dt><dd id="profileEmail"></dd><dt>会员编号</dt><dd id="profileId"></dd></dl><button id="logout" type="button" class="secondary">退出登录</button></section>
-   </div>
-   <p id="status" role="status" aria-live="polite" class="status"></p>
-  </section>
- </main>
+    </div>
+    <div id="signedInArea" class="hidden">
+      <div class="dashboard-welcome"><div><p class="eyebrow">WELCOME BACK</p><h2>开启你的创作之旅</h2><p>把旅游视频变成世界各地观众能听懂的作品。</p></div><span class="welcome-stamp" aria-hidden="true">✦</span></div>
+      <a class="studio-cta" href="/member-studio.html"><span class="video-icon" aria-hidden="true">▣</span><span><strong>开始制作视频</strong><small>上传原片 · 选择语言 · 翻译配音</small></span><span class="cta-arrow" aria-hidden="true">→</span></a>
+      <div class="quick-items"><a href="/member-studio.html#myWorks">▤ 我的作品</a><a href="#creditArea">🪙 积分中心</a><a href="#accountArea">♙ 个人资料</a></div>
+      <div class="pricing-summary"><span>🪙 视频翻译计费</span><strong>0.65 积分 / 秒</strong><small>按原片时长计，向上取整至整秒</small></div>
+      <section class="account-secondary" id="creditArea" aria-label="积分和申请记录">
+       <div class="credit-heading"><h2>我的积分</h2><strong id="creditBalance">— <small>积分</small></strong></div>
+       <p class="credit-help">按视频原片时长计费，每秒0.65积分。积分申请由管理员审核，目前不支持在线支付。</p>
+       <form id="creditForm" class="credit-form">
+        <label>申请积分数量<input id="creditPoints" type="number" min="1" max="100000" step="1" inputmode="numeric" value="100" required></label>
+        <label>申请备注（选填）<input id="creditRemark" type="text" maxlength="200" placeholder="例如：申请体验积分"></label>
+        <button id="creditSubmit" class="primary" type="submit">提交积分申请</button>
+       </form>
+       <p id="creditStatus" class="status" role="status" aria-live="polite"></p>
+       <div class="credit-heading"><h3>积分申请记录</h3><button id="creditRefresh" type="button" class="small-button">刷新</button></div>
+       <div id="creditOrders" class="credit-records"></div>
+       <h3>积分流水</h3><div id="creditLedger" class="credit-records"></div>
+      </section>
+      <section class="account-secondary" id="accountArea"><h2>个人资料</h2><dl><dt>姓名</dt><dd id="profileName"></dd><dt>邮箱</dt><dd id="profileEmail"></dd><dt>会员编号</dt><dd id="profileId"></dd></dl><button id="logout" type="button" class="secondary">退出登录</button></section>
+    </div>
+    <p id="status" role="status" aria-live="polite" class="status"></p>
+   </section>
+   <div class="footer-caption">一方云起，四海同行 · 张家界</div>
+  </main>
+  <nav class="bottom-nav" aria-label="网站导航"><a href="/"><span>⌂</span>首页</a><a href="/member-studio.html"><span>▣</span>开始创作</a><a href="/member-studio.html#myWorks"><span>▤</span>我的作品</a><a href="/members.html#creditArea"><span>◉</span>积分中心</a><a class="selected" href="/members.html"><span>♙</span>个人中心</a></nav>
+</div>
 </body></html>

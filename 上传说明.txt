@@ -1,36 +1,12 @@
-云起四海网站升级 v1.4（管理员分离 + 完整语种）
+云起四海 v1.7 统一视觉升级（不修改后端业务）
 
-请保留文件夹结构，将本压缩包中的文件上传/覆盖到GitHub仓库：ly19239286561-create/yunqisihai-ai
+本包只有3个文件：
+1. 根目录 members.html（覆盖）
+2. 根目录 members.css（覆盖）
+3. public 文件夹内 member-studio.css（覆盖 public/member-studio.css）
 
-【仓库根目录】
-  server.js（覆盖）
-  languages-fallback.json（新增）
-  members.html（覆盖，去掉首页之外的后台链接与测试文案）
-  credit-admin.html（覆盖）
-  credit-admin.js（覆盖）
-  admin.html（新增）
-  admin-dashboard.html（新增）
-  admin-portal.js（新增）
+建议分两次上传：先在仓库根目录上传 members.html、members.css 并 Commit changes；然后进入 public 文件夹上传 member-studio.css 并 Commit changes。Render 自动部署后使用浏览器无痕窗口测试。
 
-【仓库 public 文件夹】
-  index.html（覆盖，简洁主页）
-  studio.html（新增，原来的完整视频翻译工作台）
-  app.js（覆盖，动态语种列表）
-  entry.css（新增，简洁主页与后台样式）
-
-重要：必须上传到指定文件夹，不要把 public 里面的文件放在仓库根目录。
-GitHub提交后 Render 应自动部署。无需更改数据库、密钥或后台环境变量。
-
-地址：
-  网站主页 https://yunqisihai-ai.onrender.com/
-  会员中心 https://yunqisihai-ai.onrender.com/members.html
-  管理员登录 https://yunqisihai-ai.onrender.com/admin.html
-  管理后台 https://yunqisihai-ai.onrender.com/admin-dashboard.html
-  积分审核 https://yunqisihai-ai.onrender.com/credit-admin.html
-  管理员翻译工作台 https://yunqisihai-ai.onrender.com/studio.html
-
-备注：
-- 管理员登录与会员登录仍是不同账户。会员自动翻译、积分抵扣和在线支付尚未接入，不会虚称已经开通。
-- 语种通过上游真实 API 动态读取；若上游不可用，会使用 190 种官方语言/地区名称的备用表。
-- 实际可翻译语种由使用的 API 套餐权限决定，不是每个地区口音都必然可用。
-- 任何对外商业白标销售请确认服务商合同和相应转售授权。
+已保留原有注册/登录、密码小眼睛、会员会话、积分申请、积分流水、视频创建入口。后端 server.js、member-api.js、member-video-api.js 没有改动。
+视觉以首页当前的蓝白张家界设计、Logo 和四大社媒图标为准，会员登录页不显示管理员入口。
+注意：官网API官方接口列出190种语言及地区口音选项，并非190个国家，实际可用范围依具体套餐。
