@@ -1,7 +1,7 @@
 (()=>{'use strict';
 const $=s=>document.querySelector(s);
 const statusNode=$('#notice');
-let config=null, tab='file', activeFile=null, requestId=null, busy=false, refreshTimer=null;
+let config=null, tab='file', activeFile=null, requestId=null, busy=false, refreshTimer=null, localDuration=null;
 const zh={'English':'英语','Korean':'韩语','Japanese':'日语','French':'法语','German':'德语','Spanish':'西班牙语','Thai':'泰语','Vietnamese':'越南语','Arabic':'阿拉伯语','Portuguese':'葡萄牙语','Russian':'俄语','Mandarin':'中文（普通话）','Chinese':'中文','Hindi':'印地语','Italian':'意大利语','Dutch':'荷兰语','Indonesian':'印度尼西亚语','Malay':'马来语','Turkish':'土耳其语','Swedish':'瑞典语','Vietnamese':'越南语'};
 function say(message,error=false){statusNode.textContent=message;statusNode.classList.toggle('error',error);}
 async function api(path, options={}){
@@ -12,8 +12,10 @@ async function api(path, options={}){
  return data;
 }
 function readableLanguage(text){const m=/^([^()]+?)(?: \((.+)\))?$/.exec(text);if(!m)return text;const base=m[1].trim();return (zh[base]||base)+(m[2]?' · '+m[2]:'')+'（'+text+'）';}
-function setBalance(value){$('#memberBalance').textContent=value;$('#asideBalance').textContent=value;}
-function setModePrice(){if(!config)return;$('#price').textContent=config.pointsCost[$('#mode').value]||0;}
+function setBalance(value){const number=Number(value);const txt=Number.isFinite(number)?number.toFixed(2):'—';$('#memberBalance').textContent=txt;$('#asideBalance').textContent=txt;}
+function previewCost(){if(!config||!Number.isFinite(localDuration)||localDuration<=0||localDuration>1800)return null;return (Math.ceil(localDuration)*Number(config.pointsPerSecond)).toFixed(2);}
+function setModePrice(){const price=previewCost();$('#price').textContent=price===null?'待检测时长':price;$('#durationInfo').textContent=price===null?'上传视频后自动估算；最终费用以服务器检测为准':`原片 ${localDuration.toFixed(2)} 秒，计费 ${Math.ceil(localDuration)} 秒 × 0.65 积分`;}
+
 function newId(){if(globalThis.crypto?.randomUUID)return crypto.randomUUID();const a=new Uint8Array(16);crypto.getRandomValues(a);a[6]=(a[6]&15)|64;a[8]=(a[8]&63)|128;return Array.from(a,(v,i)=>([4,6,8,10].includes(i)?'-':'')+v.toString(16).padStart(2,'0')).join('');}
 function renderLanguageOptions(data){
  const select=$('#language');select.replaceChildren();
@@ -61,7 +63,8 @@ async function submit(){
  if(!$('#consent').checked){say('请确认拥有视频、出镜者肖像及声音的授权。',true);return;}
  const language=$('#language').value,mode=$('#mode').value;
  if(!language){say('请选择可用目标语种。',true);return;}
- const price=config.pointsCost[mode];if(config.balance<price){say(`积分不足，本次需要 ${price} 积分。请先到积分中心提交申请。`,true);return;}
+ const price=previewCost();if(price===null){say('请先上传能够检测时长的视频（不超过30分钟）。',true);return;}
+ if(Number(config.balance)<Number(price)){say(`积分不足，本次预计需要 ${price} 积分。请先到积分中心申请。`,true);return;}
  busy=true;$('#submitBtn').disabled=true;
  let fields={clientRequestId:requestId||newId(),language,mode,enableCaption:$('#captions').checked};
  requestId=fields.clientRequestId;
@@ -73,29 +76,32 @@ async function submit(){
    say('正在上传视频，请保持页面打开…');
    const result=await api('/video-assets',{method:'POST',headers:{'Content-Type':activeFile.type},body:activeFile});
    fields.assetId=result.assetId;fields.name=activeFile.name.slice(0,120);
+   if(result.costPoints)$('#price').textContent=Number(result.costPoints).toFixed(2);
   }else{
    const link=$('#videoUrl').value.trim();if(!link.startsWith('https://'))throw new Error('请输入HTTPS视频直链。');
    fields.videoUrl=link;fields.name='在线视频';
   }
-  say(`提交中，预计扣除 ${price} 积分…`);
+  say('服务器已核实视频时长，正在按0.65积分/秒计费并提交任务…');
   const result=await api('/video-jobs',{method:'POST',body:JSON.stringify(fields)});
   say(result.duplicate?'任务已提交，请勿重复点击。':'提交成功！系统正在处理，你可以稍后在“我的作品”查看结果。');
   requestId=null;
-  config.balance-=result.duplicate?0:price;setBalance(config.balance);
+  config.balance=Number(config.balance)-(result.duplicate?0:Number(result.costPoints||price));setBalance(config.balance);
   await updateJobs({poll:false});
   $('#myWorks').scrollIntoView({behavior:'smooth'});
  }catch(e){say(e.message||'提交失败，请重试。',true);try{await loadConfig();}catch{}}
  finally{busy=false;$('#submitBtn').disabled=false;}
 }
 for(const btn of document.querySelectorAll('.tabs button'))btn.addEventListener('click',()=>{
- tab=btn.dataset.tab;document.querySelectorAll('.tabs button').forEach(b=>b.classList.toggle('active',b===btn));
+ if(btn.disabled)return;tab=btn.dataset.tab;document.querySelectorAll('.tabs button').forEach(b=>b.classList.toggle('active',b===btn));
  $('#fileArea').classList.toggle('hidden',tab!=='file');$('#urlArea').classList.toggle('hidden',tab!=='url');resetRequest();
 });
 $('#videoFile').addEventListener('change',e=>{
- const file=e.target.files?.[0];if(!file)return;activeFile=file;resetRequest();
+ const file=e.target.files?.[0];if(!file)return;activeFile=file;localDuration=null;resetRequest();setModePrice();
  $('#fileTitle').textContent=`${file.name} · ${(file.size/1024/1024).toFixed(1)}MB`;
  const player=$('#preview');if(player.dataset.blob)URL.revokeObjectURL(player.dataset.blob);
  player.dataset.blob=URL.createObjectURL(file);player.src=player.dataset.blob;player.classList.remove('hidden');
+ player.onloadedmetadata=()=>{localDuration=Number.isFinite(player.duration)?player.duration:null;setModePrice();};
+ player.onerror=()=>{localDuration=null;setModePrice();say('视频无法读取，请转成标准MP4或WEBM格式。',true);};
 });
 $('#videoUrl').addEventListener('input',resetRequest);$('#mode').addEventListener('change',()=>{setModePrice();resetRequest();});
 $('#language').addEventListener('change',resetRequest);$('#captions').addEventListener('change',resetRequest);
