@@ -7,3 +7,13 @@ main{max-width:1080px;margin:0 auto;padding:0 20px 60px}.studio-hero{min-height:
 .brand{width:213px;display:flex;align-items:center;gap:5px;overflow:visible}.brand img{width:112px;flex-shrink:0}.brand-name{white-space:nowrap;font-size:21px;color:#0c3d65;letter-spacing:.03em;font-weight:900}@media(max-width:580px){.brand{width:169px;gap:2px}.brand img{width:88px}.brand-name{font-size:17px}}
 
 .tabs button:disabled{opacity:.45;cursor:not-allowed}.price-line{margin-bottom:7px}.price-line #price{font-variant-numeric:tabular-nums;}#durationInfo{padding:0 6px;margin-top:4px}
+
+/* v1.7 matching scenic blue and white home identity */
+body{color:#0a2d60;background:linear-gradient(180deg,#d0eeff,#eef8ff 390px,#f6faff)}
+.header{background:#e9f6ffeF;border-bottom:1px solid #d4e8ff}
+.studio-hero{background:linear-gradient(90deg,#dff2ffed,#d9efffb1),url('/zhangjiajie-scene.svg') right center/cover no-repeat}
+.studio-hero h1 em,.eyebrow{color:#0a65d7}.card{border-color:#dbeafb;box-shadow:0 14px 35px #2862af18}
+.tabs button.active{background:#eaf3ff;border-color:#aecfff;color:#1260ca}
+.submit{background:linear-gradient(100deg,#08bfea,#1267fa 80%,#563bfa);color:white;box-shadow:0 11px 23px #1767d13c}
+.step{background:#e6f1ff;color:#1165d8}.price-line{background:#eaf4ff;border-color:#bad8ff}.price-line strong{color:#135ee4}.wallet-card{background:linear-gradient(145deg,#eaf5ff,#fff)}.wallet-card strong{color:#135ee4}
+.balance-link,.member-link{background:#eef6ff;border-color:#d6e8ff;color:#1b5e9c}
