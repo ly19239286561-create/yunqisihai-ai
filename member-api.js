@@ -1,4 +1,5 @@
 import crypto from 'node:crypto';
+import { registerCreditRoutes } from './credit-api.js';
 import pg from 'pg';
 const { Pool } = pg;
 import rateLimit from 'express-rate-limit';
@@ -81,7 +82,7 @@ async function readCurrentUser(req) {
   return result.rows[0] ? publicUser(result.rows[0]) : null;
 }
 
-export function registerMemberRoutes(app) {
+export function registerMemberRoutes(app, { adminSession = () => false } = {}) {
   app.get('/api/members/status', (_req, res) => res.json({ configured: !!pool, enabled: !!pool }));
 
   app.post('/api/members/signup', gate, postGuard, async (req, res) => {
@@ -138,4 +139,6 @@ export function registerMemberRoutes(app) {
       res.json({ ok: true });
     } catch(e) { safeError(res,e); }
   });
+
+  registerCreditRoutes(app, { pool, schema, readCurrentUser, postGuard, adminSession });
 }

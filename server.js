@@ -190,10 +190,10 @@ app.get('/api/translate/:id',authorized,async(req,res)=>{
 });
 
 // Member accounts live in a separate PostgreSQL database and do not grant admin translation privileges.
-registerMemberRoutes(app);
+registerMemberRoutes(app, { adminSession: validSession });
 
 // Serve member pages from the project root; keep original public/ files unchanged.
-for (const file of ['members.html','members.css','members.js']) {
+for (const file of ['members.html','members.css','members.js','credit-admin.html','credit-admin.css','credit-admin.js']) {
   app.get('/'+file, (_req,res)=>res.sendFile(path.resolve(file)));
 }
 app.get('/members', (_req,res) => res.redirect(302,'/members.html'));

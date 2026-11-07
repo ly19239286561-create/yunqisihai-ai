@@ -26,12 +26,26 @@
       <div id="signedInArea" class="hidden">
         <div class="checkicon">✓</div><h2>已登录会员账户</h2>
         <dl><dt>邮箱</dt><dd id="profileEmail"></dd><dt>姓名</dt><dd id="profileName"></dd><dt>会员编号</dt><dd id="profileId"></dd></dl>
-        <p class="alert">目前是内部测试版：邮箱尚未验证，会员翻译额度、付款和订单功能暂未开放；管理员功能不会向会员开放。</p>
+        <p class="alert">目前是内部测试版：邮箱尚未验证，已提供积分申请与订单查询；线上付款和会员自动翻译尚未开放；管理员功能不会向会员开放。</p>
+        <section id="creditArea" class="credit-area" aria-label="我的积分和订单">
+          <div class="credit-heading"><h2>我的积分</h2><strong id="creditBalance">— <small>点</small></strong></div>
+          <p class="credit-help">积分申请由管理员人工审核。仅测试记账，不提供在线支付，也不会自动消耗翻译额度。</p>
+          <form id="creditForm" class="credit-form">
+            <label>申请积分数量<input id="creditPoints" type="number" min="1" max="100000" step="1" inputmode="numeric" value="100" required></label>
+            <label>备注（选填）<input id="creditRemark" type="text" maxlength="200" placeholder="例如：测试积分申请"></label>
+            <button id="creditSubmit" class="primary" type="submit">提交积分申请</button>
+          </form>
+          <p id="creditStatus" class="status" role="status" aria-live="polite"></p>
+          <div class="credit-heading"><h3>积分申请订单</h3><button id="creditRefresh" type="button" class="small-button">刷新</button></div>
+          <div id="creditOrders" class="credit-records"></div>
+          <h3>积分流水</h3>
+          <div id="creditLedger" class="credit-records"></div>
+        </section>
         <button id="logout" type="button" class="secondary">退出会员</button>
       </div>
       <p id="status" role="status" aria-live="polite" class="status"></p>
     </section>
-    <p class="footer">已有管理员账户？<a href="/#workflow">前往原工作台登录</a></p>
+    <p class="footer">已有管理员账户？<a href="/#workflow">前往原工作台登录</a> · <a href="/credit-admin.html">积分审核后台</a></p>
   </main>
 </body>
 </html>
