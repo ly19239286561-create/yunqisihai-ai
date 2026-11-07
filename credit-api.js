@@ -126,7 +126,7 @@ export function registerCreditRoutes(app, { pool, schema, readCurrentUser, postG
         await client.query('INSERT INTO yq_credit_wallets(member_id) VALUES ($1) ON CONFLICT(member_id) DO NOTHING',[order.member_id]);
         const wallet=await client.query(`UPDATE yq_credit_wallets
              SET balance=balance+$2,updated_at=NOW()
-             WHERE member_id=$1 AND balance <= $3-$2 RETURNING balance`,[order.member_id,order.requested_points,MAX_WALLET_POINTS]);
+             WHERE member_id=$1 AND balance <= ($3::integer - $2::integer) RETURNING balance`,[order.member_id,order.requested_points,MAX_WALLET_POINTS]);
         if (!wallet.rows.length) {
           await client.query('ROLLBACK'); return res.status(409).json({ error:'会员余额达到上限，无法批准。' });
         }
