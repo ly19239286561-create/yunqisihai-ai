@@ -25,7 +25,8 @@ const ADMIN_EMAIL = process.env.ADMIN_EMAIL?.trim()?.toLowerCase();
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || '';
 const SECRET = process.env.SESSION_SECRET || '';
 const PROD = process.env.NODE_ENV === 'production';
-const MAX_VIDEO_BYTES = 1024 * 1024 * 1024; // 单文件 1GB；较大文件改用外部可访问的链接
+const MAX_VIDEO_BYTES = 1024 * 1024 * 1024; // R2上传上限1GB
+const MAX_DIRECT_BYTES = 32 * 1024 * 1024; // HeyGen资产上传上限32MB
 const FILE_TYPES = new Map([['video/mp4','.mp4'],['video/quicktime','.mov'],['video/webm','.webm']]);
 
 if (!ADMIN_EMAIL || ADMIN_PASSWORD.length < 12 || SECRET.length < 32 || !KEY) {
@@ -88,7 +89,7 @@ async function heygen(path,method='GET',body){
 }
 
 app.get('/api/health',(_req,res)=>res.json({status:'ok'}));
-app.get('/api/session',(req,res)=>res.json({loggedIn:validSession(req),uploadsEnabled:r2Ready}));
+app.get('/api/session',(req,res)=>res.json({loggedIn:validSession(req),uploadsEnabled:true,uploadMode:r2Ready?'r2':'heygen',maxDirectBytes:MAX_DIRECT_BYTES}));
 app.post('/api/login',limitLogin,(req,res)=>{
   const {email,password}=req.body??{};
   const expected = crypto.scryptSync(ADMIN_PASSWORD,'yunqisihai-login',64);
@@ -100,6 +101,37 @@ app.post('/api/login',limitLogin,(req,res)=>{
   res.json({ok:true});
 });
 app.post('/api/logout',authorized,(_req,res)=>{res.clearCookie('yqsession',{httpOnly:true,sameSite:'strict',secure:PROD,path:'/'});res.json({ok:true});});
+
+// 小视频无需第三方对象存储，由受保护的后端转发到HeyGen（最大32MB）。
+// Express raw仅接受明确的MP4/WEBM Content-Type，避免把API密钥暴露在浏览器。
+const rawVideo = express.raw({type:['video/mp4','video/webm'],limit:'32mb'});
+app.post('/api/uploads/heygen',authorized,limitSubmit,rawVideo,async(req,res)=>{
+  try{
+    const type=(req.get('content-type')||'').split(';')[0].trim().toLowerCase();
+    if(!['video/mp4','video/webm'].includes(type)||!Buffer.isBuffer(req.body)||!req.body.length||req.body.length>MAX_DIRECT_BYTES){
+      return res.status(400).json({error:'HeyGen直接上传仅支持32MB以内的MP4/WEBM视频'});
+    }
+    const form=new FormData();
+    form.append('file',new Blob([req.body],{type}),type==='video/mp4'?'tour-video.mp4':'tour-video.webm');
+    const ctrl=new AbortController();
+    const timer=setTimeout(()=>ctrl.abort(),120000);
+    let response;
+    try{
+      response=await fetch('https://api.heygen.com/v3/assets',{
+        method:'POST',headers:{'x-api-key':KEY,'Accept':'application/json'},body:form,signal:ctrl.signal
+      });
+    }finally{clearTimeout(timer);}
+    const text=await response.text();
+    let result;
+    try{result=JSON.parse(text);}catch{result={message:text.slice(0,250)};}
+    if(!response.ok||result.error||(result.code&&![100,200].includes(Number(result.code)))){
+      throw new Error(result.message||result.error?.message||'HeyGen上传失败 '+response.status);
+    }
+    const assetId=result.data?.asset_id;
+    if(typeof assetId!=='string'||!assetId)throw new Error('HeyGen未返回素材ID');
+    res.json({assetId});
+  }catch(e){res.status(502).json({error:'直传HeyGen失败：'+safeError(e)});}
+});
 
 // 浏览器使用 R2 签名 URL 直传，不经过本服务服务器转存视频。
 app.post('/api/uploads/sign',authorized,limitSubmit,async(req,res)=>{
@@ -117,10 +149,13 @@ app.post('/api/uploads/sign',authorized,limitSubmit,async(req,res)=>{
 const LANGUAGES = new Set(['English (United States)','Korean','Japanese','French (France)','German (Germany)','Spanish (Spain)','Thai','Vietnamese','Chinese (Mandarin, Simplified)']);
 app.post('/api/translate',authorized,limitSubmit,async(req,res)=>{
   try{
-    const {fileKey,videoUrl,language,mode,enableCaption}=req.body??{};
+    const {assetId,fileKey,videoUrl,language,mode,enableCaption}=req.body??{};
     if(!LANGUAGES.has(language)||!['speed','precision','audio'].includes(mode))return res.status(400).json({error:'请选择有效的语言和翻译模式'});
     let video;
-    if(fileKey){
+    if(assetId){
+      if(typeof assetId!=='string'||!/^[-_a-zA-Z0-9]{6,200}$/.test(assetId))return res.status(400).json({error:'无效HeyGen素材ID'});
+      video={type:'asset_id',asset_id:assetId};
+    }else if(fileKey){
       if(!r2Ready)return res.status(400).json({error:'未配置上传存储'});
       if(typeof fileKey!=='string'||!/^videos\/[a-f0-9-]{36}\.(mp4|mov|webm)$/.test(fileKey))return res.status(400).json({error:'无效文件标识'});
       const obj=await s3.send(new HeadObjectCommand({Bucket:bucket,Key:fileKey}));
@@ -153,4 +188,4 @@ app.get('/api/translate/:id',authorized,async(req,res)=>{
 app.use(express.static('public',{index:'index.html',dotfiles:'ignore',maxAge:'10m'}));
 app.use((_req,res)=>res.status(404).json({error:'接口不存在'}));
 const port=Number(process.env.PORT)||3000;
-app.listen(port,()=>console.log(`云起四海工作台运行于 ${port} 端口；上传：${r2Ready?'已配置':'未配置'}`));
+app.listen(port,()=>console.log(`云起四海工作台运行于 ${port} 端口；上传：${r2Ready?'R2':'HeyGen直接上传（32MB）'}`));

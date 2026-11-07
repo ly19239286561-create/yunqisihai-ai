@@ -2,6 +2,7 @@ const $ = s=>document.querySelector(s);
 let selectedTab='file';
 let currentFile=null;
 let signedStorage=false;
+let uploadMode='none';
 let pollTimer=null;
 const STORAGE='yunqisihai-translation-jobs-v1';
 const langNames={'English (United States)':'英语','Korean':'韩语','Japanese':'日语','French (France)':'法语','German (Germany)':'德语','Spanish (Spain)':'西班牙语','Thai':'泰语','Vietnamese':'越南语','Chinese (Mandarin, Simplified)':'中文'};
@@ -39,12 +40,12 @@ async function refreshJobs(){
 }
 async function restoreSession(){
   try{
-    const data=await api('/session');signedStorage=!!data.uploadsEnabled;
+    const data=await api('/session');uploadMode=data.uploadMode||(data.uploadsEnabled?'r2':'none');signedStorage=uploadMode!=='none';
     $('#authPanel').classList.toggle('hidden',data.loggedIn);
     $('#toolPanel').classList.toggle('hidden',!data.loggedIn);
     $('#logoutBtn').classList.toggle('hidden',!data.loggedIn);
     $('#storageHint').classList.toggle('hidden',signedStorage);
-    if(!signedStorage)$('#storageHint').textContent='当前服务器未配置上传存储，请切换“视频链接”提交真实任务。';
+    if(!signedStorage)$('#storageHint').textContent='当前不支持本地上传，请切换视频链接。';
     if(data.loggedIn){renderJobs();await refreshJobs();if(!pollTimer)pollTimer=setInterval(refreshJobs,18000);}
     else{if(pollTimer)clearInterval(pollTimer);pollTimer=null;}
   }catch(e){setMessage(e.message,true);}
@@ -73,15 +74,29 @@ $('#submitBtn').addEventListener('click',async()=>{
     let name='在线视频';
     if(selectedTab==='file'){
       if(!currentFile)throw new Error('请先选择视频文件。');
-      if(!signedStorage)throw new Error('尚未配置 R2 存储。请切换“视频链接”，或先完成 R2 配置。');
-      if(currentFile.size>1024*1024*1024)throw new Error('文件不能超过 1GB。');
-      if(!['video/mp4','video/quicktime','video/webm'].includes(currentFile.type))throw new Error('请上传 MP4 / MOV / WEBM 文件。');
-      setMessage('正在申请安全上传地址…');
-      const signed=await api('/uploads/sign',{method:'POST',body:JSON.stringify({type:currentFile.type,size:currentFile.size})});
-      setMessage('正在上传视频文件，请保持页面打开…');
-      const uploaded=await fetch(signed.uploadUrl,{method:'PUT',headers:{'Content-Type':currentFile.type},body:currentFile});
-      if(!uploaded.ok)throw new Error('上传失败。请检查 R2 存储 CORS 规则、容量及网络状态。');
-      input.fileKey=signed.key;name=currentFile.name;
+      if(!signedStorage)throw new Error('服务器尚未启用本地视频上传。');
+      name=currentFile.name;
+      if(uploadMode==='heygen'){
+        if(currentFile.size>32*1024*1024)throw new Error('免费直传限32MB，建议先用剪映压缩视频。');
+        if(!['video/mp4','video/webm'].includes(currentFile.type))throw new Error('请将视频转为 MP4 或 WEBM 再上传。');
+        setMessage('正在安全上传到 HeyGen，请保持页面打开…');
+        const response=await fetch('/api/uploads/heygen',{
+          method:'POST',credentials:'same-origin',headers:{'Content-Type':currentFile.type},body:currentFile
+        });
+        let payload;try{payload=await response.json();}catch{payload={error:'上传服务器响应异常'};}
+        if(!response.ok)throw new Error(payload.error||('上传失败：'+response.status));
+        if(!payload.assetId)throw new Error('上传成功但HeyGen未返回素材ID');
+        input.assetId=payload.assetId;
+      }else if(uploadMode==='r2'){
+        if(currentFile.size>1024*1024*1024)throw new Error('文件不能超过1GB。');
+        if(!['video/mp4','video/quicktime','video/webm'].includes(currentFile.type))throw new Error('请上传 MP4/MOV/WEBM 视频');
+        setMessage('正在申请安全上传地址…');
+        const signed=await api('/uploads/sign',{method:'POST',body:JSON.stringify({type:currentFile.type,size:currentFile.size})});
+        setMessage('正在上传视频文件，请保持页面打开…');
+        const uploaded=await fetch(signed.uploadUrl,{method:'PUT',headers:{'Content-Type':currentFile.type},body:currentFile});
+        if(!uploaded.ok)throw new Error('上传失败。请检查 R2 存储配置。');
+        input.fileKey=signed.key;
+      }else throw new Error('暂无可用上传通道');
     }else{
       const url=$('#videoUrl').value.trim();if(!url.startsWith('https://'))throw new Error('请填写 HTTPS 视频文件链接。');
       input.videoUrl=url;name=url.split('/').pop().split('?')[0].slice(0,60)||'在线视频';
