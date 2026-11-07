@@ -4,8 +4,11 @@ import helmet from 'helmet';
 import cookieParser from 'cookie-parser';
 import rateLimit from 'express-rate-limit';
 import crypto from 'node:crypto';
+import { readFileSync } from 'node:fs';
+import path from 'node:path';
 import { S3Client, PutObjectCommand, GetObjectCommand, HeadObjectCommand } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
+import { registerMemberRoutes } from './member-api.js';
 
 const app = express();
 app.disable('x-powered-by');
@@ -185,7 +188,27 @@ app.get('/api/translate/:id',authorized,async(req,res)=>{
     res.json({id:req.params.id,status:data.status||'unknown',videoUrl:safeUrl(data.video_url),captionUrl:safeUrl(data.srt_caption_url),failureMessage:data.failure_message||null});
   }catch(e){res.status(502).json({error:'查询任务失败：'+safeError(e)});}
 });
+
+// Member accounts live in a separate PostgreSQL database and do not grant admin translation privileges.
+registerMemberRoutes(app);
+
+// Serve member pages from the project root; keep original public/ files unchanged.
+for (const file of ['members.html','members.css','members.js']) {
+  app.get('/'+file, (_req,res)=>res.sendFile(path.resolve(file)));
+}
+app.get('/members', (_req,res) => res.redirect(302,'/members.html'));
+
+// Add one clearly visible member entry to the existing home page without replacing its design.
+app.get('/', (_req,res,next) => {
+  try {
+    const original = readFileSync(path.resolve('public/index.html'),'utf8');
+    const link = '<section class="wrap"><a class="cta" href="/members.html">会员注册 / 登录 →</a></section>';
+    const html = original.includes('<main>') ? original.replace('<main>', '<main>' + link) : original;
+    res.type('html').send(html);
+  } catch(e) { next(e); }
+});
+
 app.use(express.static('public',{index:'index.html',dotfiles:'ignore',maxAge:'10m'}));
 app.use((_req,res)=>res.status(404).json({error:'接口不存在'}));
 const port=Number(process.env.PORT)||3000;
-app.listen(port,()=>console.log(`云起四海工作台运行于 ${port} 端口；上传：${r2Ready?'R2':'HeyGen直接上传（32MB）'}`));
+app.listen(port,()=>console.log(`云起四海工作台运行于 ${port} 端口；上传：${r2Ready?'R2':'HeyGen直接上传（32MB）'}；会员数据库：${process.env.DATABASE_URL?'已配置':'待配置'}`));
