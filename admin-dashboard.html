@@ -1,0 +1,9 @@
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>管理后台 · 云起四海</title><link rel="stylesheet" href="/entry.css"><script src="/admin-portal.js" defer></script></head>
+<body class="admin-layout" data-screen="dashboard"><header class="topline"><a href="/">✈ 云起四海 <small>管理中心</small></a><button id="adminLogout" type="button">退出管理员</button></header>
+<main><div class="admin-title"><h1>管理后台</h1><p class="muted">积分申请与翻译工作统一管理。积分发放前请核实申请。</p></div>
+<nav class="quick-links" aria-label="管理功能"><a class="outline-link" href="/credit-admin.html">积分审核明细</a><a class="outline-link" href="/studio.html#workflow">视频翻译工作台</a><a class="outline-link" href="/members.html">查看会员入口</a></nav>
+<div class="stats"><div class="stat"><strong id="pendingCount">—</strong><span>待审核积分申请</span></div><div class="stat"><strong id="allCount">—</strong><span>近期申请总数</span></div></div>
+<section class="panel"><div class="toolbar"><h2>待审核积分申请</h2><button id="refreshPending" class="mini-button" type="button">刷新申请</button></div>
+<p id="adminStatus" class="status" role="status" aria-live="polite"></p><div id="pendingOrders"></div>
+<p class="help">批准即为会员账户发放积分，不代表已完成在线付款。</p></section>
+</main></body></html>

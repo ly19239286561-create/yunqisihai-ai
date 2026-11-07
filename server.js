@@ -149,11 +149,44 @@ app.post('/api/uploads/sign',authorized,limitSubmit,async(req,res)=>{
   }catch(e){res.status(502).json({error:'获取上传链接失败：'+safeError(e)});}
 });
 
-const LANGUAGES = new Set(['English (United States)','Korean','Japanese','French (France)','German (Germany)','Spanish (Spain)','Thai','Vietnamese','Chinese (Mandarin, Simplified)']);
+// Keep a complete local fallback for provider outages; refresh canonical names from the API.
+const FALLBACK_LANGUAGES = Object.freeze(JSON.parse(readFileSync(path.resolve('languages-fallback.json'),'utf8')));
+let languageCache = null;
+let languageFetch = null;
+async function getLanguages(){
+  const nowTime=Date.now();
+  if(languageCache && nowTime-languageCache.loadedAt<6*60*60*1000)return languageCache;
+  if(!languageFetch){
+    languageFetch=(async()=>{
+      try{
+        const result=await heygen('/v3/video-translations/languages');
+        const data=result.data||result;
+        if(!Array.isArray(data.languages)||data.languages.length<10)throw new Error('invalid language list');
+        const names=[...new Set(data.languages.filter(s=>typeof s==='string'&&s.length>0&&s.length<120))];
+        if(names.length<10)throw new Error('empty language list');
+        const plan=Array.isArray(data.available_on_current_plan)?data.available_on_current_plan.filter(s=>names.includes(s)):null;
+        languageCache={languages:names,availableOnPlan:plan,fromLiveApi:true,loadedAt:Date.now()};
+      }catch(error){
+        console.warn('Translation languages API unavailable:',error?.name||'error');
+        languageCache=languageCache||{languages:FALLBACK_LANGUAGES,availableOnPlan:null,fromLiveApi:false,loadedAt:Date.now()};
+      }
+      return languageCache;
+    })().finally(()=>{languageFetch=null;});
+  }
+  return await languageFetch;
+}
+app.get('/api/languages',authorized,async(_req,res)=>{
+  const data=await getLanguages();
+  res.set('Cache-Control','no-store');
+  res.json({languages:data.languages,availableOnPlan:data.availableOnPlan,fromLiveApi:data.fromLiveApi});
+});
+
 app.post('/api/translate',authorized,limitSubmit,async(req,res)=>{
   try{
     const {assetId,fileKey,videoUrl,language,mode,enableCaption}=req.body??{};
-    if(!LANGUAGES.has(language)||!['speed','precision','audio'].includes(mode))return res.status(400).json({error:'请选择有效的语言和翻译模式'});
+    const supported=await getLanguages();
+    if(typeof language!=='string'||!supported.languages.includes(language)||!['speed','precision','audio'].includes(mode))return res.status(400).json({error:'请选择有效的语言和翻译模式'});
+    if(supported.availableOnPlan&&!supported.availableOnPlan.includes(language))return res.status(400).json({error:'当前服务套餐暂不支持所选语种。'});
     let video;
     if(assetId){
       if(typeof assetId!=='string'||!/^[-_a-zA-Z0-9]{6,200}$/.test(assetId))return res.status(400).json({error:'无效视频素材编号'});
@@ -193,20 +226,13 @@ app.get('/api/translate/:id',authorized,async(req,res)=>{
 registerMemberRoutes(app, { adminSession: validSession });
 
 // Serve member pages from the project root; keep original public/ files unchanged.
-for (const file of ['members.html','members.css','members.js','credit-admin.html','credit-admin.css','credit-admin.js']) {
+for (const file of ['members.html','members.css','members.js','credit-admin.html','credit-admin.css','credit-admin.js','admin.html','admin-dashboard.html','admin-portal.js']) {
   app.get('/'+file, (_req,res)=>res.sendFile(path.resolve(file)));
 }
 app.get('/members', (_req,res) => res.redirect(302,'/members.html'));
 
-// Add one clearly visible member entry to the existing home page without replacing its design.
-app.get('/', (_req,res,next) => {
-  try {
-    const original = readFileSync(path.resolve('public/index.html'),'utf8');
-    const link = '<section class="wrap"><a class="cta" href="/members.html">会员注册 / 登录 →</a></section>';
-    const html = original.includes('<main>') ? original.replace('<main>', '<main>' + link) : original;
-    res.type('html').send(html);
-  } catch(e) { next(e); }
-});
+// Public landing page is intentionally limited to member/admin entry points.
+app.get('/', (_req,res)=>res.sendFile(path.resolve('public/index.html')));
 
 app.use(express.static('public',{index:'index.html',dotfiles:'ignore',maxAge:'10m'}));
 app.use((_req,res)=>res.status(404).json({error:'接口不存在'}));

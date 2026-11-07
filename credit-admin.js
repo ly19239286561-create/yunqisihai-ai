@@ -38,7 +38,7 @@
         box.append(card);
       }
       say('已读取最近 '+data.orders.length+' 笔订单。');
-    }catch(e){say(e.message+' 可先返回原翻译工作台，以管理员账户登录。');}
+    }catch(e){say(e.message+' 请先进入管理员登录页。');}
   }
   $('#adminRefresh').addEventListener('click',load);load();
 })();

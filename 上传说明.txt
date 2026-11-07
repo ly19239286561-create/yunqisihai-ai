@@ -1,24 +1,36 @@
-云起四海 · 网页用语优化包（v1.3）
+云起四海网站升级 v1.4（管理员分离 + 完整语种）
 
-修改说明：
-1. 目标语言显示“英文（English）”，便于游客识别；底层仍使用原有 English (United States) 美式英语翻译配置，避免影响功能或产生重复语言选项。
-2. 将网页里的供应商专有名词替换为“云端翻译服务”等通用描述，包含上传、翻译进度、报错和任务提示。
-3. 保留原来的实际视频翻译接口、会员注册、管理员权限与积分审核接口；不更改密钥与 Neon 数据库。
+请保留文件夹结构，将本压缩包中的文件上传/覆盖到GitHub仓库：ly19239286561-create/yunqisihai-ai
 
-在GitHub仓库 ly19239286561-create/yunqisihai-ai：
-- 上传 public/index.html，覆盖同一路径同名文件；
-- 上传 public/app.js，覆盖同一路径同名文件；
-- 上传根目录 server.js，覆盖原有 server.js。
+【仓库根目录】
+  server.js（覆盖）
+  languages-fallback.json（新增）
+  members.html（覆盖，去掉首页之外的后台链接与测试文案）
+  credit-admin.html（覆盖）
+  credit-admin.js（覆盖）
+  admin.html（新增）
+  admin-dashboard.html（新增）
+  admin-portal.js（新增）
 
-注意：上传时必须保留 public 文件夹层级。不要把 public/index.html 放到仓库根目录代替 index.html。
-此包没有 credit-api.js，不会覆盖你之前修复的积分审批问题。
+【仓库 public 文件夹】
+  index.html（覆盖，简洁主页）
+  studio.html（新增，原来的完整视频翻译工作台）
+  app.js（覆盖，动态语种列表）
+  entry.css（新增，简洁主页与后台样式）
 
-GitHub 更新提交后 Render 通常会自动部署。部署成功后刷新浏览器，检查：
-- 翻译目标语言显示“英文（English）”；
-- 页面不显示供应商名称；
-- 管理员登录、会员登录和积分审核仍正常；
-- 如果已有短视频，请只在确认额度的情况下试用实际翻译，因为会产生付费 API 消耗。
+重要：必须上传到指定文件夹，不要把 public 里面的文件放在仓库根目录。
+GitHub提交后 Render 应自动部署。无需更改数据库、密钥或后台环境变量。
 
-提醒：移除页面上的供应商字样并不能保证服务来源无法被识别，尤其公开GitHub仓库可能展示后端代码。
-HeyGen 服务条款对未经授权的白标接入有限制；正式对外推广前应确认所使用 API 套餐及合同允许此类展示方式，并确保对 AI 生成内容的适当披露。
-此包不移除视频本身的水印，也不保证已获任何品牌/白标授权。
+地址：
+  网站主页 https://yunqisihai-ai.onrender.com/
+  会员中心 https://yunqisihai-ai.onrender.com/members.html
+  管理员登录 https://yunqisihai-ai.onrender.com/admin.html
+  管理后台 https://yunqisihai-ai.onrender.com/admin-dashboard.html
+  积分审核 https://yunqisihai-ai.onrender.com/credit-admin.html
+  管理员翻译工作台 https://yunqisihai-ai.onrender.com/studio.html
+
+备注：
+- 管理员登录与会员登录仍是不同账户。会员自动翻译、积分抵扣和在线支付尚未接入，不会虚称已经开通。
+- 语种通过上游真实 API 动态读取；若上游不可用，会使用 190 种官方语言/地区名称的备用表。
+- 实际可翻译语种由使用的 API 套餐权限决定，不是每个地区口音都必然可用。
+- 任何对外商业白标销售请确认服务商合同和相应转售授权。
