@@ -15,7 +15,7 @@
     <form id="authForm">
      <label id="nameField" class="hidden">姓名或昵称<input name="name" id="name" autocomplete="name" maxlength="80" placeholder="请输入姓名或昵称"></label>
      <label>电子邮箱<input name="email" id="email" type="email" autocomplete="email" required maxlength="254" placeholder="name@example.com"></label>
-     <label>密码<input name="password" id="password" type="password" autocomplete="current-password" required minlength="12" maxlength="128" placeholder="不少于12位"></label>
+     <label>密码<div class="password-wrap"><input name="password" id="password" type="password" autocomplete="current-password" required minlength="12" maxlength="128" placeholder="不少于12位"><button type="button" id="togglePassword" class="eye-toggle" aria-label="显示密码" aria-pressed="false" title="显示或隐藏密码"><svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M2 12s3.6-6 10-6 10 6 10 6-3.6 6-10 6S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></svg></button></div></label>
      <button type="submit" id="submit" class="primary">会员登录</button><p class="hint">注册只需邮箱和密码，无需短信验证码。</p>
     </form>
    </div>

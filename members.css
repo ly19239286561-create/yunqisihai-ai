@@ -42,3 +42,11 @@ body{background:#f1f9fc url('/zhangjiajie-scene.svg') center top/100% auto no-re
 @media(max-width:570px){.container{padding:25px 15px 70px}.panel{padding:23px 18px}.header-inner{padding:0 15px;height:69px}.logo{width:133px}.site-nav{gap:12px}.intro h1{font-size:30px}.welcome-heading h2{font-size:21px}.studio-cta{padding:17px;gap:11px;min-height:92px}.studio-cta .video-icon{width:48px;height:48px;border-radius:13px}.studio-cta strong{font-size:18px}.studio-cta small{font-size:11px}.quick-items a{font-size:11px}}
 
 .logo{width:210px;gap:5px;overflow:visible}.logo img{width:113px;flex-shrink:0}.brand-name{font-size:21px;white-space:nowrap;color:#0c3d65;letter-spacing:.04em;font-weight:900}@media(max-width:570px){.logo{width:180px}.logo img{width:96px}.brand-name{font-size:18px}}
+
+/* v1.6 password visibility toggle */
+.password-wrap{display:flex;align-items:center;position:relative}
+.password-wrap input{padding-right:57px}
+.eye-toggle{position:absolute;right:7px;top:50%;transform:translateY(-50%);min-width:43px;height:39px;border-radius:10px;border:1px solid #dce7f1;background:#f2f8fe;color:#275f9e;font-size:22px;line-height:1;cursor:pointer}
+.eye-toggle.visible{background:#d8efff;color:#004cbd}
+
+.eye-toggle{display:grid;place-items:center}.eye-toggle.visible:after{content:'';position:absolute;width:23px;height:2px;background:#004cbd;transform:rotate(-43deg);box-shadow:0 0 0 2px #d8efff}

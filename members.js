@@ -96,6 +96,13 @@
     try{await refreshCredits();$('#creditStatus').textContent='已刷新余额与订单。';}
     catch(e){$('#creditStatus').textContent=e.message;}
   });
+  $('#togglePassword').addEventListener('click',()=>{
+    const input=$('#password'), visible=input.type==='password';
+    input.type=visible?'text':'password';
+    $('#togglePassword').setAttribute('aria-label',visible?'隐藏密码':'显示密码');
+    $('#togglePassword').setAttribute('aria-pressed',String(visible));
+    $('#togglePassword').classList.toggle('visible',visible);
+  });
   $('#tabLogin').addEventListener('click', () => setMode('login'));
   $('#tabSignup').addEventListener('click', () => setMode('signup'));
   $('#authForm').addEventListener('submit', async event => {

@@ -1,0 +1,48 @@
+云起四海 · 网站升级 v1.6（2026-11-08）
+
+【这是真实网站源码修改包，不是海报！】
+
+功能：
+1. 首页重新排版：沿用固定蓝色山海飞机 Logo、张家界元素、YouTube、TikTok、Instagram、Facebook 标志和欧洲成年女性游客主视觉；首页不显示管理员入口。
+2. 会员登录/注册密码框增加“小眼睛”，点击可切换密码显示/隐藏。
+3. 视频工作台从“按单计费”改为按源视频时长收取 0.65 积分/秒：不足整秒按整秒计；10秒=6.50积分；10.1秒=7.15积分；30秒=19.50积分；60秒=39.00积分。
+4. 后端使用 ffprobe 检测上传视频真实时长，不依赖会员填写的时长；扣款记录、视频记录及失败退分都使用两位小数。
+5. 为保证准确时长计费，会员视频直链暂不可用，只开放 MP4/WEBM 本地上传，文件 <= 32 MB、视频 <= 30 分钟。
+6. 自动将 Neon 钱包余额、流水及任务费用从整数列升级为 NUMERIC(14,2)，保留原账本历史及现有余额。
+7. 语言列表仍基于先前接入的视频翻译服务返回的 190 种语言和地区口音选择。当前服务套餐未必支持全部选项；不虚报195+种语言。
+
+【上传至 GitHub 仓库 ly19239286561-create/yunqisihai-ai】
+强烈建议在GitHub先建立一个新分支/保留之前版本，以便必要时回退。
+
+第一组（上传到仓库根目录）：
+  video-billing.js       （全新文件）
+  video-billing.test.js  （计费测试）
+  package.json           （增加 ffprobe-static 依赖）
+  members.html           （会员密码小眼睛）
+  members.js
+  members.css
+  member-video-api.js    （按秒积分收费、自动退分及数据库迁移）
+
+第二组（进入GitHub仓库 public 文件夹上传）：
+  public/index.html
+  public/home.css
+  public/home.js
+  public/traveler-european.webp
+  public/member-studio.html
+  public/member-studio.js
+  public/member-studio.css
+  以及包内 public 下原有的 logo / SVG 资源（同名覆盖即可；未改变既定Logo）
+
+注意：请把“public文件夹里面的文件”放到GitHub里的 public 文件夹，不能误上传到仓库根目录！
+请在上面文件全部完成后，让 Render 完成自动部署。server.js 无需修改或重复上传。
+
+【上线验证】
+1. 浏览器打开 https://yunqisihai-ai.onrender.com/ ：查看首页与欧洲成年女性旅游主视觉、原Logo、四大社媒。
+2. 会员入口 https://yunqisihai-ai.onrender.com/members.html ：在密码框点击小眼睛。
+3. 制作视频 https://yunqisihai-ai.onrender.com/member-studio.html ：上传1秒MP4视频，预估0.65积分，后台会核实真实视频时长再扣费。
+4. 管理员仍可直接打开 https://yunqisihai-ai.onrender.com/admin.html （首页不展示）。
+5. 访问后端健康 /api/health；并查看 Render 日志是否出现数据库迁移或 ffprobe 报错。
+
+【重要】
+会员积分申请仍是管理员人工审核，不是支付或充值系统。该版本已做静态语法测试、计费单元测试、MP4/WEBM时长检测和登录可见性UI测试，尚未对你自己的线上API账号做真实端到端翻译测试，也尚未实际更改线上数据库。
+当会员第一次打开视频工作台时，会由程序执行数据库列类型迁移，线上更新前请做数据库备份。若 Render 依赖安装失败，检查 ffprobe-static 的安装日志；不要在出问题时继续让会员扣积分。

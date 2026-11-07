@@ -1,14 +1,16 @@
 {
   "name": "yunqisihai-video-translation",
-  "version": "1.1.0",
+  "version": "1.6.0",
   "private": true,
-  "description": "云起四海：HeyGen 视频翻译工作台 + Neon 邮箱会员",
+  "description": "云起四海 AI视频翻译会员平台（按视频时长每秒0.65积分计费）",
   "type": "module",
-  "engines": { "node": ">=20" },
+  "engines": {
+    "node": ">=20"
+  },
   "scripts": {
     "start": "node server.js",
-    "check": "node --check server.js && node --check member-api.js && node --check member-security.js && node --check members.js && node --check public/app.js",
-    "test": "node --test member-security.test.js"
+    "check": "node --check server.js && node --check member-video-api.js && node --check video-billing.js && node --check members.js && node --check public/home.js && node --check public/member-studio.js",
+    "test": "node --test video-billing.test.js"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.800.0",
@@ -17,6 +19,7 @@
     "express": "^4.21.2",
     "express-rate-limit": "^7.5.0",
     "helmet": "^8.0.0",
-    "pg": "^8.23.1"
+    "pg": "^8.23.1",
+    "ffprobe-static": "^3.1.0"
   }
 }
