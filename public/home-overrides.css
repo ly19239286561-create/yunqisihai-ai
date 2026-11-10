@@ -1,0 +1,29 @@
+/* 云起四海首页文案可读性优化：本文件在 home.css 之后加载 */
+.hero-description {
+  display: inline-block;
+  max-width: 600px;
+  padding: 13px 18px;
+  margin: 0 0 21px -10px;
+  border: 1px solid rgba(255,255,255,.9);
+  border-radius: 16px;
+  background: rgba(255,255,255,.84);
+  color: #082d63;
+  font-size: clamp(18px, 2.15vw, 26px);
+  font-weight: 850;
+  line-height: 1.65;
+  letter-spacing: .015em;
+  text-shadow: none;
+  box-shadow: 0 7px 22px rgba(18,67,119,.12);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+}
+@media (max-width: 620px) {
+  .hero-description {
+    max-width: 285px;
+    padding: 10px 12px;
+    margin: 0 0 15px -5px;
+    border-radius: 12px;
+    font-size: 16px;
+    line-height: 1.6;
+  }
+}
